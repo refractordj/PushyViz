@@ -1,7 +1,7 @@
 new p5();
 
 var array_size = 64;
-var gravity = -1;
+var gravity = -2;
 
 class Dot {
     
@@ -12,6 +12,10 @@ class Dot {
         this.speed_y = random(-25, 25);
         this.col = color(random(127, 255), random(127, 255), random(127, 255));
         this.energyLevel = random(1,4);
+        this.energy = function() {
+            fft.analyze();
+            return fft.getEnergy(2*pow(10, this.energyLevel-1), 2*pow(10, this.energyLevel));
+        }
     }
 
     setSpeed(sx,sy) {
@@ -32,8 +36,7 @@ class Dot {
         //drawVolEllipse(this.x, this.y, 64, 64);
 
         // Volume-based outer circle
-        fft.analyze();
-        var vol = fft.getEnergy(2*pow(10, this.energyLevel-1), 2*pow(10, this.energyLevel))/255;
+        var vol = this.energy()/255;
         fill(this.col.levels[0], this.col.levels[1], this.col.levels[2], 64);
         ellipse(this.x, this.y, 64*sqrt(vol));
 
@@ -78,8 +81,10 @@ function bg_draw() {
         var sx = dots[i].speed_x;
         var sy = dots[i].speed_y;
 
-        dots[i].x += dt*sx;
-        dots[i].y += dt*sy;
+        var grav_factor = dots[i].energy()/255;
+
+        dots[i].x += dt*sx*grav_factor;
+        dots[i].y += dt*sy*grav_factor;
         if(dots[i].x<0) {
             dots[i].speed_x *= -1;
             dots[i].x=0;
